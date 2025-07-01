@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>麻將記帳</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+    h1 { color: #333; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: white; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f0f0f0; }
+    select, input { padding: 6px; font-size: 16px; margin: 4px; }
+    .summary, .form { margin-top: 20px; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <h1>麻將記帳</h1>
+
+  <label for="playerSelect">選擇玩家：</label>
+  <select id="playerSelect">
+    <option value="">-- 選擇玩家 --</option>
+  </select>
+
+  <div class="summary">
+    累積輸贏：<strong id="totalResult">--</strong>
+  </div>
+
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>日期</th>
+        <th>人員</th>
+        <th>當局帳目</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="form">
+    <h2>新增記錄</h2>
+    日期：<input type="date" id="newDate"><br>
+    玩家：<input type="text" id="newPlayer"><br>
+    金額：<input type="number" id="newAmount"><br>
+    <button id="addBtn">新增資料</button>
+  </div>
+
+  <script>
+    let data = [];
+
+    const tbody = document.querySelector('#dataTable tbody');
+    const playerSelect = document.getElementById('playerSelect');
+    const totalResult = document.getElementById('totalResult');
+
+    const newDate = document.getElementById('newDate');
+    const newPlayer = document.getElementById('newPlayer');
+    const newAmount = document.getElementById('newAmount');
+    const addBtn = document.getElementById('addBtn');
+
+    function renderTable() {
+      tbody.innerHTML = '';
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.date || ''}</td><td>${row.player}</td><td>${row.amount}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderPlayers() {
+      playerSelect.innerHTML = `<option value="">-- 選擇玩家 --</option>`;
+      const uniquePlayers = [...new Set(data.map(r => r.player))];
+      uniquePlayers.forEach(player => {
+        const option = document.createElement('option');
+        option.value = player;
+        option.textContent = player;
+        playerSelect.appendChild(option);
+      });
+    }
+
+    playerSelect.addEventListener('change', () => {
+      const selected = playerSelect.value;
+      if (!selected) {
+        totalResult.textContent = '--';
+        return;
+      }
+      const sum = data
+        .filter(r => r.player === selected)
+        .reduce((acc, cur) => acc + cur.amount, 0);
+      totalResult.textContent = sum;
+    });
+
+    function fetchData() {
+      fetch('/api/records/')
+        .then(res => res.json())
+        .then(records => {
+          data = records;
+          renderTable();
+          renderPlayers();
+        });
+    }
+
+    addBtn.addEventListener('click', () => {
+      const newRecord = {
+        date: newDate.value || null,
+        player: newPlayer.value.trim(),
+        amount: parseInt(newAmount.value, 10)
+      };
+      if (!newRecord.player || isNaN(newRecord.amount)) {
+        alert("請輸入玩家與正確金額");
+        return;
+      }
+
+      fetch('/api/records/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRecord)
+      })
+      .then(res => res.json())
+      .then(record => {
+        data.push(record);
+        renderTable();
+        renderPlayers();
+        newDate.value = '';
+        newPlayer.value = '';
+        newAmount.value = '';
+      });
+    });
+
+    fetchData();
+  </script>
+</body>
+</html>
