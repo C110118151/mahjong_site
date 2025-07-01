@@ -2,15 +2,92 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>麻將記帳系統</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
-    h1 { color: #333; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: white; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background-color: #f0f0f0; }
-    .summary, form { margin-top: 20px; font-size: 18px; }
-    input, select { padding: 6px; margin-right: 10px; }
+    body {
+      font-family: sans-serif;
+      padding: 1rem;
+      background: #f9f9f9;
+      margin: 0;
+    }
+
+    h1 {
+      color: #333;
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    form, .summary {
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    input, select, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+      flex: 1 1 120px;
+      min-width: 120px;
+    }
+
+    button {
+      cursor: pointer;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    .summary {
+      margin-top: 1rem;
+      text-align: center;
+      flex-wrap: wrap;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 800px;
+      margin: 2rem auto 0;
+      background: white;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.75rem;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    th {
+      background-color: #f0f0f0;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      input, select, button {
+        flex: 1 1 100%;
+      }
+
+      th, td {
+        font-size: 0.85rem;
+        padding: 0.5rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -40,7 +117,11 @@
     </thead>
     <tbody id="recordTable">
       {% for record in records %}
-        <tr><td>{{ record.date }}</td><td>{{ record.player }}</td><td>{{ record.amount }}</td></tr>
+        <tr>
+          <td>{{ record.date }}</td>
+          <td>{{ record.player }}</td>
+          <td>{{ record.amount }}</td>
+        </tr>
       {% endfor %}
     </tbody>
   </table>
@@ -48,7 +129,6 @@
   <script>
     const playerSelect = document.getElementById('playerSelect');
     const totalResult = document.getElementById('totalResult');
-
     const playerTotals = {{ player_totals|safe }};
 
     playerSelect.addEventListener('change', () => {
@@ -56,7 +136,6 @@
       totalResult.textContent = selected ? playerTotals[selected] || 0 : '--';
     });
 
-    // 表單送出
     document.getElementById('addForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const date = document.getElementById('date').value;
